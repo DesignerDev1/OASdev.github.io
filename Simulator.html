@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Budget Utilization & Alert States Simulator</title>
+  <script src="https://tailwindcss.com"></script>
+  <link href="https://googleapis.com" rel="stylesheet" />
+  <script src="https://unpkg.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 flex flex-col items-center justify-center min-h-screen p-6 m-0 gap-6">
+
+  <!-- Interactive Control Panel Layer -->
+  <div class="w-[1280px] bg-slate-900 border border-slate-800 rounded-2xl p-6 text-slate-300 space-y-4 shadow-xl z-20">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <i data-lucide="sliders" class="w-5 h-5 text-blue-400"></i>
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Engine Simulation Parameters</h3>
+      </div>
+      <span class="text-xs text-slate-500 font-mono">Simulates properties: :monthlyLimit & :initialSpend</span>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-8">
+      <!-- Input Controls -->
+      <div class="space-y-4">
+        <div>
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <label for="monthlyLimit" class="text-slate-400">Monthly Budget Cap ($)</label>
+            <span id="limitVal" class="text-blue-400 font-mono font-bold">$500.00</span>
+          </div>
+          <input type="range" id="monthlyLimit" min="100" max="1000" step="50" value="500" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+        </div>
+        
+        <div>
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <label for="currentSpend" class="text-slate-400">Simulated Target Spend ($)</label>
+            <span id="spendVal" class="text-blue-400 font-mono font-bold">$250.00</span>
+          </div>
+          <input type="range" id="currentSpend" min="0" max="1200" step="10" value="250" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+        </div>
+      </div>
+
+      <!-- Real-time Live State Meta-Feed -->
+      <div class="bg-slate-950/60 rounded-xl border border-slate-800/80 p-4 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest block">Evaluator Engine State</span>
+            <div id="statusBadge" class="mt-1 px-2.5 py-0.5 rounded text-xs font-bold inline-block border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+              NORMAL OPERATIONAL CAP
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest block">Live Calculated Metric</span>
+            <span id="livePct" class="text-xl font-bold font-mono text-white">50%</span>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mt-2">
+          Adjust the target spend slider to watch the template cards dynamically re-evaluate visual treatments based on mathematical logic thresholds.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presentation 1280x800 Feature Spotlight Canvas Template -->
+  <div class="w-[1280px] h-[800px] bg-slate-950 relative overflow-hidden flex flex-col justify-between p-12 border border-slate-900 shadow-2xl rounded-3xl">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center z-10 border-b border-slate-900 pb-6">
+      <div>
+        <span class="text-xs font-semibold text-blue-400 tracking-wider uppercase">FEATURE SPOTLIGHT</span>
+        <h2 class="text-2xl font-bold text-white mt-1">Dynamic Budget Utilization & Alert States</h2>
+      </div>
+      <span class="px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 rounded-lg text-xs font-mono">Radial Gauge Engine</span>
+    </div>
+
+    <!-- 3 Card Grid Showing System Interpretations -->
+    <div class="grid grid-cols-3 gap-6 z-10 my-auto">
+      
+      <!-- Card 1: Live Simulation Evaluation -->
+      <div id="liveCard" class="bg-slate-900/80 border border-emerald-500/20 p-6 rounded-2xl text-center space-y-4 relative overflow-hidden transition-all duration-300">
+        <div id="liveAlertBanner" class="hidden absolute top-0 left-0 w-full bg-rose-500/10 py-1 text-[10px] text-rose-400 font-semibold uppercase tracking-wider">Budget Alert Triggered</div>
+        <div class="flex justify-between items-center text-xs pt-0 id-pt-adjust">
+          <span class="text-slate-400 font-mono">State: <span id="liveStateLabel">Normal</span></span>
+          <span id="livePill" class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20 font-semibold">50% Used</span>
+        </div>
+        
+        <!-- Continuous Conic Radial Gauge Representation -->
+        <div class="w-32 h-32 mx-auto rounded-full flex items-center justify-center relative" id="liveRadialRing" style="background: conic-gradient(#10b981 180deg, #1e293b 0deg);">
+          <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center">
+            <span id="liveCircleText" class="text-2xl font-bold font-mono text-white">50%</span>
+          </div>
+        </div>
+        
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <p class="text-xs text-slate-400">Spend: <strong id="liveSpendText" class="text-white">$250.00</strong> / <span id="liveLimitText">$500.00</span></p>
+          <span id="liveSubtext" class="text-[10px] text-emerald-400 font-medium">Within Standard Operating Cap</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Warning Baseline State (Static Showcase) -->
+      <div class="bg-slate-900/80 border border-amber-500/30 p-6 rounded-2xl text-center space-y-4 opacity-60 hover:opacity-100 transition-opacity">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-slate-400 font-mono">State: Warning</span>
+          <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20 font-semibold">80% Used</span>
+        </div>
+        <div class="w-32 h-32 mx-auto rounded-full flex items-center justify-center relative" style="background: conic-gradient(#f59e0b 288deg, #1e293b 0deg);">
+          <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center">
+            <span class="text-2xl font-bold font-mono text-amber-400">80%</span>
+          </div>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <p class="text-xs text-slate-400">Spend: <strong class="text-white">$400.00</strong> / $500.00</p>
+          <span class="text-[10px] text-amber-400">Approaching Monthly Hard Cap</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Alert Over-Budget State (Static Showcase) -->
+      <div class="bg-slate-900/80 border border-rose-500/40 p-6 rounded-2xl text-center space-y-4 relative overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
+        <div class="absolute top-0 left-0 w-full bg-rose-500/10 py-1 text-[10px] text-rose-400 font-semibold uppercase tracking-wider">Budget Alert Triggered</div>
+        <div class="flex justify-between items-center text-xs pt-3">
+          <span class="text-slate-400 font-mono">State: Over Limit</span>
+          <span class="px-2 py-0.5 bg-rose-500/10 text-rose-400 rounded border border-rose-500/20 font-semibold animate-pulse">105% Used</span>
+        </div>
+        <div class="w-32 h-32 mx-auto rounded-full flex items-center justify-center relative" style="background: conic-gradient(#f43f5e 360deg, #1e293b 0deg);">
+          <div class="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center">
+            <span class="text-2xl font-bold font-mono text-rose-500">105%</span>
+          </div>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <p class="text-xs text-slate-400">Spend: <strong class="text-white">$525.00</strong> / $500.00</p>
+          <span class="text-[10px] text-rose-400 font-bold">Hard Limit Exceeded (-$25.00)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Simulator Banner Bar Footer -->
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between text-xs text-slate-400 z-10">
+      <div class="flex items-center gap-2">
+        <i data-lucide="sliders" class="w-4 h-4 text-blue-400"></i>
+        <span>Built-in interactive slider allows end-users to simulate spend thresholds in real time.</span>
+      </div>
+      <span class="font-mono text-slate-300">Props: :monthlyLimit & :initialSpend</span>
+    </div>
+  </div>
+
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+
+    // DOM References
+    const limitSlider = document.getElementById('monthlyLimit');
+    const spendSlider = document.getElementById('currentSpend');
+    
+    const limitVal = document.getElementById('limitVal');
+    const spendVal = document.getElementById('spendVal');
+    
+    const statusBadge = document.getElementById('statusBadge');
+    const livePct = document.getElementById('livePct');
+    
+    // Live UI Template Card Elements
+    const liveCard = document.getElementById('liveCard');
+    const liveAlertBanner = document.getElementById('liveAlertBanner');
+    const liveStateLabel = document.getElementById('liveStateLabel');
+    const livePill = document.getElementById('livePill');
+    const liveRadialRing = document.getElementById('liveRadialRing');
+    const liveCircleText = document.getElementById('liveCircleText');
